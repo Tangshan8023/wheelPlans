@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>轮播图</title>
+    <style>
+        *{
+            padding: 0px;
+            margin: 0px;
+
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+    var rollDiv = createDiv({height: "300px",
+        width: "400px",
+        margin: "100px auto",
+        backgroundColor: "red",
+        position: "relative", overflow: "hidden"}, document.body);
+    var imgCon = createDiv({height: "300px",
+        width: "800px",
+        position: "absolute",
+        left: "0px",
+        top: "0px", backgroundColor: "#ccc"},rollDiv);
+    var imgArr = ['./img/a.jpg', './img/b.jpg', './img/c.jpg', './img/d.jpg', './img/e.jpg'];
+    var leftBn = createBtn({width: "30px",
+        height: "40px",
+        position: "absolute",
+        top:(rollDiv.offsetHeight-40)/2+"px",
+        left:"0px", cursor: "pointer"}, "./img/left.png", rollDiv);
+    var rightBn = createBtn({width: "30px",
+        height: "40px",
+        position: "absolute",
+        top:(rollDiv.offsetHeight-40)/2+"px",
+        right:"0px", cursor: "pointer"}, "./img/right.png", rollDiv);
+
+    imgCon.appendChild(createItemImg({width: "400px", height: "300px", float: "left"}, 0));
+    var uls =createArc({listStyle:"none",
+        width:"400px",
+        height: "20px",
+        position:"absolute",
+        left: "0px",
+        bottom: "5px",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center"},{width: "20px",
+        height: "20px",
+        borderRadius: "10px",
+        margin: "0px 5px",
+        backgroundColor: "rgba(255, 0, 0, 0.5)",
+        color: "#fff",
+        lineHeight: "20px",
+        textAlign: "center", cursor: "pointer"},rollDiv);
+    uls.children[0].style.backgroundColor = "rgba(255, 0, 0, 1)";
+    var position = 0;
+    var bool = false;
+    var dis = "";
+    setInterval(animation, 16);
+    /*
+    * 创建DIV
+    * */
+    function createDiv(style, parent) {
+        var div = document.createElement("div");
+        setStyle(div, style);
+        parent.appendChild(div);
+        return div;
+    }
+    /*
+    * 创建子项轮播图片
+    * */
+    function createItemImg(style, index) {
+        var divImg = document.createElement("div");
+        setStyle(divImg, style);
+        var img = new Image();
+        img.src = imgArr[index];
+        img.style.width = "400px";
+        img.style.height = "300px";
+        divImg.appendChild(img);
+        return divImg;
+    }
+    /*
+    * 创建左右按钮
+    * */
+    function createBtn(style, img, parent) {
+        var div = createDiv(style, parent);
+        var imgB = new Image();
+        imgB.src = img;
+        imgB.style.width = "30px";
+        imgB.style.height = "40px";
+        div.appendChild(imgB);
+        div.addEventListener("click", btnClickHandler);
+        return div;
+    }
+    /*
+    * 左右按钮点击事件
+    * */
+    function btnClickHandler(e) {
+        e=e || window.event;
+        if(dis.length > 0) return;
+        var prePosition = position;
+        if(this === leftBn){
+            position--;
+            if(position<0) position = imgArr.length-1;
+            dis = "right";
+        }else if(this === rightBn){
+            position++;
+            if(position>(imgArr.length-1)) position = 0;
+            dis = "left";
+        }
+        for(var i=0; i<uls.children.length;i++){
+            uls.children[i].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+        }
+        rollImgChange(prePosition, position);
+    }
+    /*
+    * 创建底部小圆点
+    * */
+    function createArc(ulStyle, liStyle, parent) {
+        var ul = document.createElement("ul");
+        setStyle(ul, ulStyle);
+        for(var i=0; i<imgArr.length; i++){
+            var li = document.createElement("li");
+            setStyle(li, liStyle);
+            li.textContent = i+1;
+            li.addEventListener("click", liClickHandler);
+            ul.appendChild(li);
+        }
+        parent.appendChild(ul);
+        return ul;
+    }
+    /*
+    * 小圆点点击事件
+    * */
+    function liClickHandler(e) {
+        e=e || window.event;
+        if(dis.length > 0) return;
+        var prePosition = position;
+        for(var i=0; i<uls.children.length; i++){
+            uls.children[i].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+            if(uls.children[i] === this){
+                position = i;
+            }
+        }
+        rollImgChange(prePosition, position);
+    }
+
+    /*
+    * 监听轮播图的变化
+    * */
+    function rollImgChange(current, target) {
+        var div = createItemImg({width: "400px", height: "300px", float: "left"}, target);
+        if(dis.length === 0){
+            if(target>current){
+                dis = "left";
+            }else if(target<current){
+                dis = "right";
+            }
+        }
+        if(dis === "left"){
+            imgCon.appendChild(div);
+            imgCon.style.left = "0px";
+        }else if(dis === "right"){
+            imgCon.insertBefore(div, imgCon.firstElementChild);
+            imgCon.style.left = "-400px";
+        }
+        uls.children[position].style.backgroundColor = "rgba(255, 0, 0, 1)";
+        bool = true;
+    }
+    /*
+    * 执行动画
+    * */
+    function animation() {
+        if(!bool) return;
+        if(dis === "left"){
+            imgCon.style.left = imgCon.offsetLeft-6+"px";
+            bool=true;
+            if(imgCon.offsetLeft < -400){
+                bool=false;
+                imgCon.removeChild(imgCon.firstElementChild);
+                imgCon.style.left = "0px";
+                dis = "";
+                return;
+            }
+        }else if(dis === "right"){
+            imgCon.style.left = imgCon.offsetLeft+6+"px";
+            bool=true;
+            if(imgCon.offsetLeft >0){
+                bool=false;
+                imgCon.removeChild(imgCon.lastElementChild);
+                imgCon.style.left = "0px";
+                dis = "";
+                return;
+            }
+        }
+    }
+    /*
+    * 动态添加style样式
+    * */
+    function setStyle(ele, style) {
+        for(var sty in style){
+            ele.style[sty] = style[sty];
+        }
+    }
+</script>
+</body>
+</html>
